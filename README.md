@@ -1,4 +1,7 @@
 zend-xdebug-bookmarklets-generator
 ==================================
 
-Zend Debugger &amp; Xdebug bookmarklets generator for PhpStorm
+This is an adapted version of the *Zend Debugger & Xdebug bookmarklets generator for PhpStorm*
+
+Original URL: 
+http://www.jetbrains.com/phpstorm/marklets/
