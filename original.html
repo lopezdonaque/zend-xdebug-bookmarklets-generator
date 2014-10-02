@@ -1,0 +1,360 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!-- saved from url=(0043)http://www.jetbrains.com/phpstorm/marklets/ -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+    <title>Zend Debugger &amp; Xdebug bookmarklets generator for PhpStorm</title>
+    <link href="http://www.jetbrains.com/phpstorm/marklets/bootstrap.css" rel="stylesheet">
+	<style type="text/css">
+        dl, dd {
+            margin-left: 20px;
+        }
+	</style>
+    <script type="text/javascript">
+
+    var version = "0.5.2";
+    var defaultExpiresDate = "Mon, 05 Jul 2000 00:00:00 GMT";
+    var defaultPath = "/";
+
+    //utility methods
+
+    function surroundCode(code) {
+      return 'javascript:(' + generateVersionComment(version) + 'function() {' + code + '})()';
+    }
+
+    function generateVersionComment(version) {
+      return '/** @version ' + version + ' */'
+    }
+
+    function generateCookieAssignments(cookies, path, expiresDate) {
+      var result = "";
+      for (var cookieName in cookies) {
+        var cookieValue = cookies[cookieName];
+        result += generateCookieAssignment(cookieName, cookieValue, path, expiresDate);
+      }
+      return result;
+    }
+
+    function generateCookieAssignment(name, value, path, expiresDate) {
+      return "document.cookie='" +
+             name + "='+" + value + "+';" +
+             (expiresDate !== undefined ? ("expires=" + expiresDate + ";") : "") +
+             "path=" + path + ";" +
+             "';";
+    }
+
+    function generateDestroyCookiesCode(cookiesNames) {
+      var cookies = {};
+      for (var key in cookiesNames) {
+        var cookieName = cookiesNames[key];
+        cookies[cookieName] = generateStringLiteralExpression("");
+      }
+      return generateCookieAssignments(cookies, defaultPath, defaultExpiresDate);
+    }
+
+    function generateStringLiteralExpression(literal) {
+      return "'" + literal + "'";
+    }
+
+    function generateReloadPageCode(){
+      return "document.location.reload();";
+    }
+
+    //zend debugger
+
+    function generateDestroyZendDebuggerCookiesCode() {
+      return generateDestroyCookiesCode(
+          [
+            "ZendDebuggerCookie",
+            "_bm",
+            "debug_line_bp",
+            "debug_file_bp",
+            "start_debug",
+            "start_profile",
+            "debug_port",
+            "debug_host",
+            "send_debug_header",
+            "debug_stop",
+            "debug_coverage",
+            "send_sess_end",
+            "debug_jit",
+            "debug_start_session",
+            "original_url",
+            "use_ssl",
+            "debug_fastfile",
+            "debug_protocol",
+            "debug_session_id",
+            "no_remote",
+            "use_remote"
+          ]
+      );
+    }
+
+    function generateZendDebuggerStartBaseCode(port, ip) {
+      return generateDestroyZendDebuggerCookiesCode() +
+             generateCookieAssignments(
+                 {
+                   "debug_host":generateStringLiteralExpression(ip),
+                   "debug_port":generateStringLiteralExpression(port),
+                   "debug_session_id":"(Math.floor(Math.random() * 147483648) + 2000)",
+                   "send_sess_end":generateStringLiteralExpression("1"),
+                   "no_remote":generateStringLiteralExpression("1"),
+                   "send_debug_header":generateStringLiteralExpression("1"),
+                   "original_url":"document.location"
+                 },
+                 defaultPath
+             );
+    }
+
+    function generateZendDebuggerStartDebugBaseCode(port, ip, breakAtTheFirstLine) {
+      var result = generateZendDebuggerStartBaseCode(port, ip) +
+                   generateCookieAssignments(
+                       {
+                         "start_debug":generateStringLiteralExpression("1"),
+                         "debug_jit":generateStringLiteralExpression("1")
+                       },
+                       defaultPath);
+      if (breakAtTheFirstLine) {
+        result += generateCookieAssignments(
+            {
+              "debug_stop":generateStringLiteralExpression("1"),
+            },
+            defaultPath);
+      }
+      return result;
+    }
+
+    function generateZendDebugThisPageCode(port, ip, breakAtFirstLine) {
+      return generateZendDebuggerDebugNextPageCode(port, ip, breakAtFirstLine) +
+             generateReloadPageCode();
+    }
+
+    function generateZendDebuggerDebugNextPageCode(port, ip, breakAtFirstLine) {
+      return generateZendDebuggerStartDebugBaseCode(port, ip, breakAtFirstLine) +
+             generateCookieAssignments(
+                 {
+                   "debug_new_session":generateStringLiteralExpression("1")
+                 }
+                 , defaultPath);
+    }
+
+    function generateZendDebuggerDebugAllPagesCode(port, ip, breakAtFirstLine) {
+      return generateZendDebuggerStartDebugBaseCode(port, ip, breakAtFirstLine) +
+             generateCookieAssignments(
+                 {
+                   "debug_start_session":generateStringLiteralExpression("1")
+                 }
+                 , defaultPath);
+    }
+
+    function generateZendDebuggerDebugAllPostCode(port, ip, breakAtFirstLine) {
+      return generateZendDebuggerStartDebugBaseCode(port, ip, breakAtFirstLine) +
+             generateCookieAssignments(
+                 {
+                   "debug_start_session":generateStringLiteralExpression("POST")
+                 }
+                 , defaultPath);
+    }
+
+    function generateZendDebuggerStartProfilerCode(port, ip) {
+      return generateZendDebuggerStartBaseCode(port, ip) +
+             generateCookieAssignments(
+                 {
+                   "start_profile":generateStringLiteralExpression("1"),
+                   "start_debug":generateStringLiteralExpression("1")
+                 },
+                 defaultPath);
+    }
+
+    function setZendBookmarklets(port, ip, breakAtFirstLine) {
+      document.getElementById('zend_bookmarklets').style.display = '';
+      document.getElementById('zendStopSession').href = surroundCode(generateDestroyZendDebuggerCookiesCode());
+      document.getElementById('zendDebugAllPages').href = surroundCode(generateZendDebuggerDebugAllPagesCode(port, ip, breakAtFirstLine));
+      document.getElementById('zendDebugThisPage').href = surroundCode(generateZendDebugThisPageCode(port, ip, breakAtFirstLine));
+      document.getElementById('zendDebugNextPage').href = surroundCode(generateZendDebuggerDebugNextPageCode(port, ip, breakAtFirstLine));
+      document.getElementById('zendDebugAllPost').href = surroundCode(generateZendDebuggerDebugAllPostCode(port, ip, breakAtFirstLine));
+      document.getElementById('zendStartProfiler').href = surroundCode(generateZendDebuggerStartProfilerCode(port, ip));
+      document.getElementById('zendStopProfiler').href = surroundCode(generateDestroyZendDebuggerCookiesCode());
+    }
+
+    function onSubmitGenerateZendDebuggerForm() {
+      var port = document.getElementById('zend_debugger_port').value;
+      var ip = encodeURIComponent(document.getElementById('zend_debugger_ip').value);
+      var breakAtFirstLine = document.getElementById('zend_debugger_break_at_the_first_line').checked;
+      setZendBookmarklets(port, ip, breakAtFirstLine);
+    }
+
+    //xdebug
+
+    function generateXdebugStartDebugCode(ideKey) {
+      return generateCookieAssignments(
+          {
+            "XDEBUG_SESSION":generateStringLiteralExpression(ideKey)
+          }
+          , defaultPath
+      );
+    }
+
+    function generateXdebugStopDebugCode() {
+      return generateDestroyCookiesCode(["XDEBUG_SESSION"]);
+    }
+
+    function generateXdebugDebugThisPageCode(ideKey) {
+      return generateXdebugStartDebugCode(ideKey) +
+             generateReloadPageCode() +
+             generateXdebugStopDebugCode();
+    }
+
+    function generateXdebugStartProfilerCode() {
+      return generateCookieAssignments(
+          {
+            "XDEBUG_PROFILE":generateStringLiteralExpression("1")
+          }
+          , defaultPath
+      );
+    }
+
+    function generateXdebugStopProfilerCode() {
+      return generateDestroyCookiesCode(["XDEBUG_PROFILE"]);
+    }
+
+    function generateXdebugStartTracerCode() {
+      return generateCookieAssignments(
+          {
+            "XDEBUG_TRACE":generateStringLiteralExpression("1")
+          }
+          , defaultPath
+      );
+    }
+
+    function generateXdebugStopTracerCode() {
+      return generateDestroyCookiesCode(["XDEBUG_TRACE"]);
+    }
+
+    function setXdebugBookmarklets(ideKey) {
+      document.getElementById('xdebug_bookmarklets').style.display = '';
+      document.getElementById('xdebugStartSession').href = surroundCode(generateXdebugStartDebugCode(ideKey));
+      document.getElementById('xdebugStopSession').href = surroundCode(generateXdebugStopDebugCode());
+      document.getElementById('xdebugThisPage').href = surroundCode(generateXdebugDebugThisPageCode(ideKey));
+      document.getElementById('xdebugStartProfiler').href = surroundCode(generateXdebugStartProfilerCode());
+      document.getElementById('xdebugStopProfiler').href = surroundCode(generateXdebugStopProfilerCode());
+      document.getElementById('xdebugStartTracer').href = surroundCode(generateXdebugStartTracerCode());
+      document.getElementById('xdebugStopTracer').href = surroundCode(generateXdebugStopTracerCode());
+    }
+
+    function onSubmitGenerateXdebugForm() {
+      var ideKey = document.getElementById('xdebug_idekey').value;
+      setXdebugBookmarklets(ideKey);
+    }
+
+    </script><style type="text/css"></style>
+    <style type="text/css">
+        * {
+            font-family: trebuchet ms, verdana, tahoma, arial, sans-serif;
+        }
+    </style>
+<style type="text/css">@media print { #feedlyMiniIcon { display: none; } }</style></head>
+<body class="p180">
+
+
+<div class="container">
+    <br>
+    <a href="http://www.jetbrains.com/phpstorm"><img src="./Zend Debugger & Xdebug bookmarklets generator for PhpStorm_files/phpstorm_logo142x29.gif" alt=""></a>
+    <br>
+    <br>
+    <p><strong>Zend Debugger &amp; Xdebug bookmarklets generator for PhpStorm</strong></p>
+
+    <table class="table table-bordered" cellpadding="5" cellspacing="2">
+        <tbody><tr>
+            <td>
+                <form class="form-horizontal" action="">
+                    <fieldset>
+                        <legend>Zend Debugger</legend>
+                        <div class="control-group">
+                            <label for="zend_debugger_port">Port:</label>
+                            <div class="controls"><input id="zend_debugger_port" type="text" value="10137"></div>
+                        </div>
+                        <div class="control-group">
+                            <label for="zend_debugger_ip">IP:</label>
+                            <div class="controls"><input id="zend_debugger_ip" type="text" value="127.0.0.1"></div>
+                        </div>
+                        <div class="control-group">
+                            <div class="controls">
+                                <label class="checkbox" for="zend_debugger_break_at_the_first_line">Break at the first line
+                                    <input id="zend_debugger_break_at_the_first_line" type="checkbox" checked="">
+                                </label>
+                            </div>
+                        </div>
+                    </fieldset>
+                </form>
+                <div class="form-actions">
+                    <button class="btn" onclick="onSubmitGenerateZendDebuggerForm()">Generate</button>
+                </div>
+            </td>
+            <td valign="top">
+                <form class="form-horizontal" action="">
+                    <fieldset>
+                        <legend>Xdebug</legend>
+                        <div class="control-group">
+                            <label for="xdebug_idekey">IDE key:</label>
+                            <div class="controls"><input id="xdebug_idekey" type="text" value="PHPSTORM"></div>
+                        </div>
+                        <div class="control-group">
+                            <br><br><br><br>
+                        </div>
+                    </fieldset>
+                </form>
+                <div class="form-actions">
+                    <button class="btn" onclick="onSubmitGenerateXdebugForm()">Generate</button>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td valign="top">
+                <div id="zend_bookmarklets" style="display: none;">
+                    <p>Bookmark these links for future use</p>
+                    <dl>
+                        <dt>Debug:</dt>
+                        <dd><a id="zendDebugAllPages">Start debugger</a></dd>
+                        <dd><a id="zendStopSession">Stop debugger</a></dd>
+                        <dd><a id="zendDebugThisPage">Debug this page</a></dd>
+                        <dd><a id="zendDebugNextPage">Debug next page</a></dd>
+                        <dd><a id="zendDebugAllPost">Debug all post</a></dd>
+
+                        <dt>Profile:</dt>
+                        <dd><a id="zendStartProfiler">Start profiler</a></dd>
+                        <dd><a id="zendStopProfiler">Stop profiler</a></dd>
+                    </dl>
+                </div>
+            </td>
+            <td valign="top">
+                <div id="xdebug_bookmarklets" style="display: none;">
+                    <p>Bookmark these links for future use</p>
+                    <dl>
+                        <dt>Debug:</dt>
+                        <dd><a id="xdebugStartSession">Start debugger</a></dd>
+                        <dd><a id="xdebugStopSession">Stop debugger</a></dd>
+                        <dd><a id="xdebugThisPage">Debug this page</a></dd>
+
+                        <dt>Profile:</dt>
+                        <dd><a id="xdebugStartProfiler">Start profiler</a></dd>
+                        <dd><a id="xdebugStopProfiler">Stop profiler</a></dd>
+
+                        <dt>Function Trace:</dt>
+                        <dd><a id="xdebugStartTracer">Start tracer</a></dd>
+                        <dd><a id="xdebugStopTracer">Stop tracer</a></dd>
+                    </dl>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <div style="float: left;">v 0.5.2</div>
+            </td>
+        </tr>
+    </tbody></table>
+
+    <br><hr>
+    <p>© 2000-2012 JetBrains. All rights reserved</p>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,180 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+  <title>Zend Debugger &amp; Xdebug bookmarklets generator for PhpStorm</title>
+  <link href="index_files/bootstrap.css" rel="stylesheet">
+  <style type="text/css">
+    dl, dd
+    {
+      margin-left: 20px;
+    }
+
+    * {
+      font-family: trebuchet ms, verdana, tahoma, arial, sans-serif;
+    }
+  </style>
+  <script type="text/javascript" src="js/Utils.js"></script>
+  <script type="text/javascript" src="js/Zend.js"></script>
+  <script type="text/javascript" src="js/Xdebug.js"></script>
+
+  <script type="text/javascript">
+
+    function setZendBookmarklets( port, ip, breakAtFirstLine )
+    {
+      document.getElementById( 'zend_bookmarklets' ).style.display = '';
+      document.getElementById( 'zendStopSession' ).href = Utils.surroundCode( Zend.getDestroyCookiesCode() );
+      document.getElementById( 'zendDebugAllPages' ).href = Utils.surroundCode( Zend.getDebugAllPagesCode( port, ip, breakAtFirstLine ) );
+      document.getElementById( 'zendDebugThisPage' ).href = Utils.surroundCode( Zend.getDebugThisPageCode( port, ip, breakAtFirstLine ) );
+      document.getElementById( 'zendDebugNextPage' ).href = Utils.surroundCode( Zend.getDebugNextPageCode( port, ip, breakAtFirstLine ) );
+      document.getElementById( 'zendDebugAllPost' ).href = Utils.surroundCode( Zend.getDebugAllPostCode( port, ip, breakAtFirstLine ) );
+
+      document.getElementById( 'zendStartProfiler' ).href = Utils.surroundCode( Zend.getStartProfilerCode( port, ip ) );
+      document.getElementById( 'zendStopProfiler' ).href = Utils.surroundCode( Zend.getDestroyCookiesCode() );
+
+      document.getElementById( 'zendDebugForwardAllPages' ).href = Utils.surroundCode( Zend.getDebugForwardAllPagesCode( port, ip, breakAtFirstLine ) );
+    }
+
+    function onSubmitGenerateZendDebuggerForm()
+    {
+      var port = document.getElementById( 'zend_debugger_port' ).value;
+      var ip = encodeURIComponent( document.getElementById( 'zend_debugger_ip' ).value );
+      var breakAtFirstLine = document.getElementById( 'zend_debugger_break_at_the_first_line' ).checked;
+      setZendBookmarklets( port, ip, breakAtFirstLine );
+    }
+
+    function setXdebugBookmarklets( ideKey )
+    {
+      document.getElementById( 'xdebug_bookmarklets' ).style.display = '';
+      document.getElementById( 'xdebugStartSession' ).href = Utils.surroundCode( Xdebug.getStartDebugCode( ideKey ) );
+      document.getElementById( 'xdebugStopSession' ).href = Utils.surroundCode( Xdebug.getStopDebugCode() );
+      document.getElementById( 'xdebugThisPage' ).href = Utils.surroundCode( Xdebug.getDebugThisPageCode( ideKey ) );
+
+      document.getElementById( 'xdebugStartProfiler' ).href = Utils.surroundCode( Xdebug.getStartProfilerCode() );
+      document.getElementById( 'xdebugStopProfiler' ).href = Utils.surroundCode( Xdebug.getStopProfilerCode() );
+
+      document.getElementById( 'xdebugStartTracer' ).href = Utils.surroundCode( Xdebug.getStartTracerCode() );
+      document.getElementById( 'xdebugStopTracer' ).href = Utils.surroundCode( Xdebug.getStopTracerCode() );
+
+      document.getElementById( 'xdebugStartForwardSession' ).href = Utils.surroundCode( Xdebug.getStartForwardDebugCode( ideKey ) );
+    }
+
+    function onSubmitGenerateXdebugForm()
+    {
+      var ideKey = document.getElementById( 'xdebug_idekey' ).value;
+      setXdebugBookmarklets( ideKey );
+    }
+
+  </script>
+</head>
+<body>
+
+
+<div class="container">
+    <br>
+    <a href="http://www.jetbrains.com/phpstorm"><img src="index_files/phpstorm_logo142x29.gif" alt=""></a>
+    <br>
+    <br>
+    <p><strong>Zend Debugger &amp; Xdebug bookmarklets generator for PhpStorm</strong></p>
+
+    <table class="table table-bordered" cellpadding="5" cellspacing="2">
+        <tbody><tr>
+            <td>
+                <form class="form-horizontal" action="">
+                    <fieldset>
+                        <legend>Zend Debugger</legend>
+                        <div class="control-group">
+                            <label for="zend_debugger_port">Port:</label>
+                            <div class="controls"><input id="zend_debugger_port" value="10137" type="text"></div>
+                        </div>
+                        <div class="control-group">
+                            <label for="zend_debugger_ip">IP:</label>
+                            <div class="controls"><input id="zend_debugger_ip" value="127.0.0.1,192.168.10.XXX" type="text"></div>
+                        </div>
+                        <div class="control-group">
+                            <div class="controls">
+                                <label class="checkbox" for="zend_debugger_break_at_the_first_line">Break at the first line
+                                    <input id="zend_debugger_break_at_the_first_line" checked="checked" type="checkbox">
+                                </label>
+                            </div>
+                        </div>
+                    </fieldset>
+                </form>
+                <div class="form-actions">
+                    <button class="btn" onclick="onSubmitGenerateZendDebuggerForm()">Generate</button>
+                </div>
+            </td>
+            <td valign="top">
+                <form class="form-horizontal" action="">
+                    <fieldset>
+                        <legend>Xdebug</legend>
+                        <div class="control-group">
+                            <label for="xdebug_idekey">IDE key:</label>
+                            <div class="controls"><input id="xdebug_idekey" value="PHPSTORM" type="text"></div>
+                        </div>
+                        <div class="control-group">
+                            <br><br><br><br>
+                        </div>
+                    </fieldset>
+                </form>
+                <div class="form-actions">
+                    <button class="btn" onclick="onSubmitGenerateXdebugForm()">Generate</button>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td valign="top">
+                <div id="zend_bookmarklets" style="display: none;">
+                    <p>Bookmark these links for future use</p>
+                    <dl>
+                        <dt>Debug:</dt>
+                        <dd><a id="zendStopSession">Zend - Stop debugger</a></dd>
+                        <dd><a id="zendDebugAllPages">Zend - Start debugger</a></dd>
+                        <dd><a id="zendDebugThisPage">Zend - Debug this page</a></dd>
+                        <dd><a id="zendDebugNextPage">Zend - Debug next page</a></dd>
+                        <dd><a id="zendDebugAllPost">Zend - Debug all post</a></dd>
+
+                        <dt>Profile:</dt>
+                        <dd><a id="zendStartProfiler">Zend - Start profiler</a></dd>
+                        <dd><a id="zendStopProfiler">Zend - Stop profiler</a></dd>
+
+                        <dt>Forward:</dt>
+                        <dd><a id="zendDebugForwardAllPages">Zend - Start forward debugger</a></dd>
+                    </dl>
+                </div>
+            </td>
+            <td valign="top">
+                <div id="xdebug_bookmarklets" style="display: none;">
+                    <p>Bookmark these links for future use</p>
+                    <dl>
+                        <dt>Debug:</dt>
+                        <dd><a id="xdebugStartSession">Xdebug - Start debugger</a></dd>
+                        <dd><a id="xdebugStopSession">Xdebug - Stop debugger</a></dd>
+                        <dd><a id="xdebugThisPage">Xdebug - Debug this page</a></dd>
+
+                        <dt>Profile:</dt>
+                        <dd><a id="xdebugStartProfiler">Xdebug - Start profiler</a></dd>
+                        <dd><a id="xdebugStopProfiler">Xdebug - Stop profiler</a></dd>
+
+                        <dt>Function Trace:</dt>
+                        <dd><a id="xdebugStartTracer">Xdebug - Start tracer</a></dd>
+                        <dd><a id="xdebugStopTracer">Xdebug - Stop tracer</a></dd>
+
+                        <dt>Forward:</dt>
+                        <dd><a id="xdebugStartForwardSession">Xdebug - Start forward debugger</a></dd>
+                    </dl>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <div style="float: left;">v 0.5.2</div>
+            </td>
+        </tr>
+    </tbody></table>
+
+    <br><hr>
+</div>
+
+</body>
+</html>
