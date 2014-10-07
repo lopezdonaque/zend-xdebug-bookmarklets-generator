@@ -6,7 +6,7 @@ var Zend =
   {
     return Utils.getDestroyCookiesCode(
     [
-      "Cookie",
+      "ZendDebuggerCookie",
       "_bm",
       "debug_line_bp",
       "debug_file_bp",
