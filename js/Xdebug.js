@@ -39,7 +39,7 @@ var Xdebug =
 
   getStartForwardDebugCode: function( ideKey )
   {
-    return Utils.getCookieAssignments( { "start_debug_forward": Utils.getStringLiteralExpression( "1" ), "_XDEBUG_SESSION": Utils.getStringLiteralExpression( ideKey ) }, Utils.defaultPath );
+    return Utils.getCookieAssignments( { "start_xdebug_forward": Utils.getStringLiteralExpression( "1" ), "_XDEBUG_SESSION": Utils.getStringLiteralExpression( ideKey ) }, Utils.defaultPath );
   }
 
 };
